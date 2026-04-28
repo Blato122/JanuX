@@ -17,12 +17,14 @@ from janux.path_generators.extended_generator import ExtendedPathGenerator
 class ClusteringPathGenerator(ExtendedPathGenerator):
 
     """
-    Route generator used by the clustering pipeline with :
-
-    - route traversal works on directed edge identifiers
-    - origin/destination collapse is handled through graph node attributes
-    - repeated undirected segments can be blocked
-    - internal junction revisits can be blocked
+    Route generator used by the clustering pipeline with extra functionalities:
+    - block repeated undirected segments revisits
+    - block junction revisits
+    - origin/destination collapse
+    - diverse selection mode (choosing subsequent paths not based on their sample counts but on their similarity to previously chosen ones - least similar are prioritized)
+    - max_resample_iterations eliminates route generation stalling by allowing to terminate early and return less paths than requested
+    
+    Mainly meant to be used with the path clustering pipeline.
     """
 
     def __init__(
@@ -84,6 +86,8 @@ class ClusteringPathGenerator(ExtendedPathGenerator):
         calc_free_flow: bool = False,
     ) -> Union[pd.DataFrame, dict]:
         """
+        Generates routes between origin-destination pairs in the network.
+
         Args:
             as_df (bool): Return a DataFrame when True, otherwise return the raw route dict.
             calc_free_flow (bool): Include free-flow travel times when True.
@@ -152,6 +156,8 @@ class ClusteringPathGenerator(ExtendedPathGenerator):
         node_potentials: dict,
     ) -> Union[List[str], None]:
         """
+        Samples a single route between an origin and a destination in the network.
+                
         Args:
             origin (str): Start node/edge for the OD pair.
             destination (str): Target node/edge for the OD pair.
