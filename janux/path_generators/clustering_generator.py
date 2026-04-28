@@ -17,21 +17,12 @@ from janux.path_generators.extended_generator import ExtendedPathGenerator
 class ClusteringPathGenerator(ExtendedPathGenerator):
 
     """
-    Route generator used by the clustering pipeline.
-
-    This class stays separate from `ExtendedPathGenerator` so the classic URB
-    scripts can keep using the original generator behavior while the clustering
-    workflow opts into the fork-derived route-building rules.
-
-    The route-building logic here follows the forked clustered generator behavior:
+    Route generator used by the clustering pipeline with :
 
     - route traversal works on directed edge identifiers
     - origin/destination collapse is handled through graph node attributes
     - repeated undirected segments can be blocked
     - internal junction revisits can be blocked
-
-    The deprecated intermediate generator variants from the fork are not
-    implemented here.
     """
 
     def __init__(
@@ -93,18 +84,12 @@ class ClusteringPathGenerator(ExtendedPathGenerator):
         calc_free_flow: bool = False,
     ) -> Union[pd.DataFrame, dict]:
         """
-        Generate clustered routes using the forked clustered generator rules.
-
         Args:
             as_df (bool): Return a DataFrame when True, otherwise return the raw route dict.
             calc_free_flow (bool): Include free-flow travel times when True.
 
         Returns:
             pd.DataFrame | dict: Generated routes in the same shape as the base generators.
-
-        Notes:
-            The loop mirrors the forked clustered generator behavior and keeps the
-            classic generators unaffected.
         """
         assert self.num_samples >= self.number_of_paths, (
             f"Number of samples ({self.num_samples}) should be "
@@ -167,8 +152,6 @@ class ClusteringPathGenerator(ExtendedPathGenerator):
         node_potentials: dict,
     ) -> Union[List[str], None]:
         """
-        Sample one route using the forked clustered traversal rules.
-
         Args:
             origin (str): Start node/edge for the OD pair.
             destination (str): Target node/edge for the OD pair.
@@ -176,10 +159,6 @@ class ClusteringPathGenerator(ExtendedPathGenerator):
 
         Returns:
             list[str] | None: A sampled route or `None` when no valid route can be built.
-
-        Notes:
-            This is the clustered route-building logic copied from the forked
-            generator path and kept local to this class.
         """
         path = []
         visited_edges = set()
@@ -327,10 +306,6 @@ class ClusteringPathGenerator(ExtendedPathGenerator):
 
         Returns:
             list[tuple]: The selected route set.
-
-        Notes:
-            This uses the forked selection rules so the generator can either keep
-            the classic unique-route behavior or opt into the diversity-based path.
         """
         assert self.number_of_paths > 0, f"Number of paths should be greater than 0"
 
