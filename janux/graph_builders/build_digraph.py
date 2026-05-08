@@ -15,7 +15,7 @@ from janux.utils import remove_double_quotes
 
 #################################################
 
-def build_digraph(connection_file: str, edge_file: str, route_file: str) -> nx.DiGraph:
+def build_digraph(connection_file: str, edge_file: str, route_file: str, use_clustered_routes : bool = False) -> nx.DiGraph:
     """
     Generates a traffic network graph from XML files.
 
@@ -23,6 +23,7 @@ def build_digraph(connection_file: str, edge_file: str, route_file: str) -> nx.D
         connection_file (str): Path to the connection XML file.
         edge_file (str): Path to the edge XML file.
         route_file (str): Path to the route XML file.
+        use_clustered_routes (bool): Whether to use clustering-routes-compatible version.
 
     Returns:
         nx.DiGraph: A directed graph representing the traffic network.
@@ -33,10 +34,16 @@ def build_digraph(connection_file: str, edge_file: str, route_file: str) -> nx.D
     """
     try:
         # Process connections
-        connections_df = _process_connection_file(connection_file)
+        if use_clustered_routes:
+            connections_df = _process_connection_file_clustering(connection_file)
+        else:
+            connections_df = _process_connection_file(connection_file)
 
         # Process edge attributes
-        edge_attributes_df = _process_edge_file(edge_file)
+        if use_clustered_routes:
+            edge_attributes_df = _process_edge_file_clustering(edge_file)
+        else:
+            edge_attributes_df = _process_edge_file(edge_file)
 
         # Process route attributes
         route_attributes_df = _process_route_file(route_file)
@@ -53,6 +60,38 @@ def build_digraph(connection_file: str, edge_file: str, route_file: str) -> nx.D
             edge_attr='travel_time',
             create_using=nx.DiGraph()
         )
+
+        if use_clustered_routes:
+            def junction_id(node_id: str | None) -> str | None:
+                if node_id is None:
+                    return None
+                node_id = str(node_id)
+                if node_id.startswith(":"):
+                    # internal SUMO node/junction id like ":123_0" -> "123"
+                    return node_id[1:].split("_")[0]            
+                return node_id
+
+            node_attrs = {}
+            for row in edge_attributes_df.itertuples(index=False):
+                if row.edge_id not in traffic_network_graph:
+                    continue
+
+                # There might be multiple connections between nodes. Currently, all are blocked
+                segment_key = (min(row.from_node, row.to_node), max(row.from_node, row.to_node))
+
+                node_attrs[row.edge_id] = {
+                    "from_node": row.from_node,
+                    "to_node": row.to_node,
+                    "segment_key": segment_key,
+                    "undir_key": segment_key,
+                    "junction_from": junction_id(row.from_node),
+                    "junction_to": junction_id(row.to_node),
+                    "is_internal_edge": str(row.edge_id).startswith(":"),
+                    "is_cluster_edge": str(row.edge_id).startswith("cluster"),
+                }
+            
+            nx.set_node_attributes(traffic_network_graph, node_attrs)
+
         return traffic_network_graph
 
     except FileNotFoundError as e:
@@ -72,6 +111,11 @@ def _process_connection_file(connection_file: str) -> pd.DataFrame:
     connections_df = connections_df.rename(columns={'0_x': 'source_edge', '0_y': 'target_edge'})
     return connections_df
 
+def _process_edge_file_clustering(edge_file: str) -> pd.DataFrame:
+    """Parses the edge XML file and returns a DataFrame with edge attributes."""
+    # uses new read xml file function and new column names (instead of 0x and 0y)
+    df = _read_xml_file_clustering(edge_file, 'edge', 'id', 'from', 'to')
+    return df.rename(columns={'id': 'edge_id', 'from': 'from_node', 'to': 'to_node'})
 
 def _process_edge_file(edge_file: str) -> pd.DataFrame:
     """Parses the edge XML file and returns a DataFrame with edge attributes."""
@@ -82,6 +126,10 @@ def _process_edge_file(edge_file: str) -> pd.DataFrame:
     edge_attributes_df['edge_id'] = edge_attributes_df['edge_id'].apply(remove_double_quotes)
     return edge_attributes_df
 
+def _process_connection_file_clustering(connection_file: str) -> pd.DataFrame:
+    """Parses the connection XML file and returns a DataFrame."""
+    df = _read_xml_file_clustering(connection_file, 'connection', 'from', 'to')
+    return df.rename(columns={'from': 'source_edge', 'to': 'target_edge'})
 
 def _process_route_file(route_file: str) -> pd.DataFrame:
     """Parses the route XML file and returns a DataFrame with route attributes."""
@@ -125,3 +173,17 @@ def _read_xml_file(file_path: str, element_name: str, attr1: str, attr2: str) ->
     attr2_values = [el.get(attr2) for el in elements]
 
     return pd.DataFrame(attr1_values), pd.DataFrame(attr2_values)
+
+def _read_xml_file_clustering(file_path: str, element_name: str, *attributes: str) -> pd.DataFrame:
+    """Reads an XML file and extracts specified attributes into a Dataframe"""
+    # 1+ attrs instead of 2, applies remove double quotes, returns 1 df
+    with open(file_path, 'r') as f:
+        data = f.read()
+    parsed_xml = BeautifulSoup(data, "xml")
+    elements = parsed_xml.find_all(element_name)
+
+    data_map = {}
+    for attr in attributes:
+        data_map[attr] = [remove_double_quotes(el.get(attr)) for el in elements]
+
+    return pd.DataFrame(data_map).dropna()
