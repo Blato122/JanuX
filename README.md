@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/889013393.svg)](https://doi.org/10.5281/zenodo.17422815)
+[![DOI](https://zenodo.org/badge/889013393.svg)](https://doi.org/10.5281/zenodo.20204628)
 ![PyPI - Version](https://img.shields.io/pypi/v/janux)
 ![GitHub License](https://img.shields.io/github/license/COeXISTENCE-PROJECT/janux)
 ![GitHub Release](https://img.shields.io/github/v/release/COeXISTENCE-PROJECT/janux)
@@ -174,7 +174,7 @@ If you use this repository, please cite it using the following BibTeX:
 @software{JanuX,
   author = {Akman, Ahmet Onur and Torbus, Błażej},
   title = {{JanuX}},
-  doi = {https://doi.org/10.5281/zenodo.17422816},
+  doi = {https://doi.org/10.5281/zenodo.20204628},
   url = {https://github.com/COeXISTENCE-PROJECT/JanuX},
   version = {1.1.0},
   month = may,
