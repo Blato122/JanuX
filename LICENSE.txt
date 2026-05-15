@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2024 Ahmet Onur Akman
+Copyright (c) 2024-2026 Ahmet Onur Akman, Błażej Torbus
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
