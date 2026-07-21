@@ -69,6 +69,7 @@ The [`janux/path_generators`](janux/path_generators) package includes four route
 | --- | --- | --- |
 | [`basic_generator`](janux/path_generators/basic_generator.py) | getting started with candidate route sampling | logit-style probabilistic path generation |
 | [`extended_generator`](janux/path_generators/extended_generator.py) | adding more control to sampled routes | loop handling, path-length limits, and adaptive parameter shifting |
+| [`alternative_generator`](janux/path_generators/alternative_generator.py) | building diverse alternative route sets | filtered candidate pools, overlap constraints, and route diversity scoring |
 | [`heuristic_generator`](janux/path_generators/heuristic_based_generator.py) | choosing route sets with custom criteria | scores sampled route sets with user-defined heuristics and weights |
 | [`clustering_generator`](janux/path_generators/clustering_generator.py) | building structurally distinct alternatives | avoids repeated road segments and junction revisits, and can favor less similar routes |
 

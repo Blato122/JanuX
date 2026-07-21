@@ -12,6 +12,7 @@ from .path_generators import check_od_integrity
 from .path_generators import basic_generator
 from .path_generators import extended_generator
 from .path_generators import clustering_generator
+from .path_generators import alternative_generator
 from .path_generators import heuristic_generator
 
 from . import visualizers

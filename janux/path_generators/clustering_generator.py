@@ -330,31 +330,19 @@ class ClusteringPathGenerator(ExtendedPathGenerator):
             if not candidates:
                 return []
 
-            picked_routes = [candidates.pop(0)]
-            min_dists_to_set = [self._jaccard_distance(c, picked_routes[0]) for c in candidates]
+            picked_routes = []
             rejected_jaccard = 0
 
-            while candidates:
+            for candidate in candidates:
                 if not self.keep_generating and len(picked_routes) >= self.number_of_paths:
                     break
 
-                max_d = max(min_dists_to_set)
-                best_idx = min_dists_to_set.index(max_d)
+                if all(self._jaccard_distance(candidate, picked) >= self.min_difference_jaccard for picked in picked_routes):
+                    picked_routes.append(candidate)
+                else:
+                    rejected_jaccard += 1
 
-                if max_d < self.min_difference_jaccard:
-                    rejected_jaccard = len(candidates)
-                    break
-
-                best_cand = candidates.pop(best_idx)
-                min_dists_to_set.pop(best_idx)
-                picked_routes.append(best_cand)
-
-                for i in range(len(candidates)):
-                    new_dist = self._jaccard_distance(candidates[i], best_cand)
-                    if new_dist < min_dists_to_set[i]:
-                        min_dists_to_set[i] = new_dist
-
-            surplus = len(candidates) if rejected_jaccard == 0 else 0
+            surplus = len(candidates) - len(picked_routes) - rejected_jaccard
             self.logger.info(
                 f"Selection: {len(picked_routes)} kept, {num_too_long} too long, "
                 f"{rejected_jaccard} too similar, {surplus} surplus unique paths."

@@ -2,7 +2,7 @@
 "verbose" : true,
 "number_of_paths" : 3,
 "beta" : -1.50,
-"weight" : "time",
+"weight" : "travel_time",
 "num_samples" : 100,
 "max_path_length" : 200,
 "allow_loops" : false,

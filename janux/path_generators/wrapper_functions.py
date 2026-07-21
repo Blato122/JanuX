@@ -45,6 +45,22 @@ def clustering_generator(network: nx.DiGraph,
                          **kwargs) -> pd.DataFrame:
     generator = ClusteringPathGenerator(network, origins, destinations, **kwargs)
     return generator.generate_routes(as_df=as_df, calc_free_flow=calc_free_flow)
+
+###########################################################################
+
+######################### Alternative Path Generator ########################
+
+from .alternative_generator import AlternativePathGenerator
+
+def alternative_generator(network: nx.DiGraph,
+                          origins: list[str],
+                          destinations: list[str],
+                          as_df: bool = False,
+                          calc_free_flow: bool = False,
+                          **kwargs) -> pd.DataFrame:
+    generator = AlternativePathGenerator(network, origins, destinations, **kwargs)
+    return generator.generate_routes(as_df=as_df, calc_free_flow=calc_free_flow)
+
 ###########################################################################
 
 ######################### Heuristic Path Generator ########################
